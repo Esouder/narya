@@ -70,7 +70,8 @@ class SensorService:
         Read thermocouple and reference junction temperatures with retry logic.
 
         Args:
-            max_retries: Override max_retries for this read. If None, uses service default.
+            max_retries: Override for this read. If None, uses service
+                default.
 
         Returns:
             TemperatureReading with current sensor data.
