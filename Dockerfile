@@ -12,8 +12,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy project files
-COPY pyproject.toml README.md ./
+COPY pyproject.toml README.md entrypoint.sh ./
 COPY src ./src
+
+# Make entrypoint executable
+RUN chmod +x /app/entrypoint.sh
 
 # Install Python dependencies
 RUN pip install --no-cache-dir poetry && \
@@ -31,4 +34,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()" || exit 1
 
 # Run the application
-CMD ["python", "-m", "narya.main", "--host", "0.0.0.0", "--port", "8000"]
+ENTRYPOINT ["/app/entrypoint.sh"]

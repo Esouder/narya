@@ -4,10 +4,10 @@ set -e
 
 # Narya Installation Script for Raspberry Pi
 # This script installs the Narya thermocouple reader service on a target machine
-# 
+#
 # Usage:
 #   curl -fsSL https://raw.githubusercontent.com/Esouder/narya/master/deploy/install.sh | sudo bash
-#   
+#
 # Or with custom image:
 #   curl -fsSL https://raw.githubusercontent.com/Esouder/narya/master/deploy/install.sh | sudo NARYA_IMAGE=ghcr.io/user/narya:latest bash
 
@@ -128,7 +128,7 @@ install_systemd_service() {
 
     systemctl daemon-reload
     log_info "Systemd service installed at ${SERVICE_FILE}"
-    
+
     # Clean up temp file
     rm -f /tmp/narya.service
 }

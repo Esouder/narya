@@ -20,7 +20,6 @@ class TestArgumentParsing:
         assert args.cs_pin == 8
         assert args.spi_bus == 0
         assert args.spi_device == 0
-        assert args.read_interval == 1000
         assert args.max_retries == 3
         assert args.host == "127.0.0.1"
         assert args.port == 8000
@@ -39,8 +38,6 @@ class TestArgumentParsing:
                 "1",
                 "--spi-device",
                 "0",
-                "--read-interval",
-                "750",
                 "--max-retries",
                 "5",
                 "--host",
@@ -58,7 +55,6 @@ class TestArgumentParsing:
         assert args.cs_pin == 10
         assert args.spi_bus == 1
         assert args.spi_device == 0
-        assert args.read_interval == 750
         assert args.max_retries == 5
         assert args.host == "0.0.0.0"
         assert args.port == 8080
@@ -90,7 +86,7 @@ class TestMainFunction:
             cs_pin=8,
             spi_bus=0,
             spi_device=0,
-            read_interval=1000,
+            max_speed_hz=5_000_000,
             max_retries=3,
             host="127.0.0.1",
             port=8000,

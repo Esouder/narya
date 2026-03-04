@@ -9,7 +9,7 @@ from fastapi.testclient import TestClient
 from httpx import Response
 
 from narya import api
-from narya.api import SensorConfig, SensorService, TemperatureReading
+from narya.api import SensorService, TemperatureReading
 from narya.sensor import SensorError
 
 
@@ -60,15 +60,13 @@ class TestTemperatureReading:
         reading = TemperatureReading(
             thermocouple_celsius=25.0,
             reference_celsius=25.0,
-            fahrenheit=77.0,
         )
         assert reading.thermocouple_celsius == 25.0
         assert reading.reference_celsius == 25.0
-        assert reading.fahrenheit == 77.0
 
     def test_temperature_reading_from_sensor(self) -> None:
         reading = TemperatureReading.from_sensor(25.0, 25.0)
-        assert abs(reading.fahrenheit - 77.0) < 0.1
+        assert reading.thermocouple_celsius == 25.0
 
 
 class TestSensorService:
@@ -82,7 +80,7 @@ class TestSensorService:
         assert reading.thermocouple_celsius == 25.0
 
     def test_service_retries_then_fails(self) -> None:
-        service = SensorService(FakeSensor(fail=True), SensorConfig(max_retries=2))
+        service = SensorService(FakeSensor(fail=True), max_retries=2)
 
         with pytest.raises(SensorError, match="Failed to read sensor after 2 attempts"):
             service.read_temperature()
@@ -92,7 +90,7 @@ class TestSensorService:
         status = service.get_status()
 
         assert status["healthy"] is True
-        assert status["read_interval_ms"] == 1000
+        assert status["max_retries"] == 3
 
 
 class TestAPIEndpoints:
@@ -119,13 +117,11 @@ class TestAPIEndpoints:
         assert payload["healthy"] is True
 
     def test_config_endpoint(self, client: TestClient) -> None:
-        response = client.post(
-            "/config", json={"read_interval_ms": 500, "max_retries": 5}
-        )
+        response = client.get("/temperature?max_retries=5")
 
         assert response.status_code == 200
         payload = _response_json(response)
-        assert payload["config"]["read_interval_ms"] == 500
+        assert payload["thermocouple_celsius"] == 25.0
 
     def test_temperature_failure_returns_503(self) -> None:
         api.configure_service(FakeSensor(fail=True))

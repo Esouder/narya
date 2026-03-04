@@ -6,6 +6,17 @@ services:
     network_mode: host
     environment:
       - LOG_LEVEL=INFO
+      # SPI Configuration (all optional, these are defaults)
+      - CS_PIN=8
+      - SPI_BUS=0
+      - SPI_DEVICE=0
+      - SPI_CLOCK_HZ=5000000
+      # Sensor Configuration
+      - MAX_RETRIES=3
+      # Server Configuration
+      - HOST=0.0.0.0
+      - PORT=8000
+      - WORKERS=1
     # GPIO device mapping for Raspberry Pi
     devices:
       - /dev/spidev0.0:/dev/spidev0.0

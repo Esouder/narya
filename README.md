@@ -4,6 +4,7 @@ A containerized Python service for reading K-type thermocouple temperatures from
 
 ## Features
 
+- **Entirely AI Generated**: Built entirely by AI from requirements to deployment
 - **Hardware Support**: MAX31855 thermocouple amplifier via SPI GPIO
 - **REST API**: FastAPI-based HTTP interface for temperature readings
 - **Container Ready**: Docker and Docker Compose for deployment
@@ -99,8 +100,7 @@ curl http://localhost:8000/temperature
 # Response
 {
   "thermocouple_celsius": 25.43,
-  "reference_celsius": 25.12,
-  "fahrenheit": 77.77
+  "reference_celsius": 25.12
 }
 ```
 
@@ -122,25 +122,20 @@ curl http://localhost:8000/status
 {
   "healthy": true,
   "last_error": null,
-  "read_interval_ms": 1000,
   "max_retries": 3
 }
 ```
 
-### Update Configuration
+### Temperature Read with Custom Retries
 
 ```bash
-curl -X POST http://localhost:8000/config \
-  -H "Content-Type: application/json" \
-  -d '{"read_interval_ms": 500, "max_retries": 5}'
+# Override max retries for a specific read
+curl "http://localhost:8000/temperature?max_retries=5"
 
 # Response
 {
-  "message": "Configuration updated",
-  "config": {
-    "read_interval_ms": 500,
-    "max_retries": 5
-  }
+  "thermocouple_celsius": 25.43,
+  "reference_celsius": 25.12
 }
 ```
 
@@ -176,7 +171,7 @@ python -m narya.main \
   --cs-pin 8 \
   --spi-bus 0 \
   --spi-device 0 \
-  --read-interval 1000 \
+  --spi-clock-hz 5000000 \
   --max-retries 3 \
   --host 0.0.0.0 \
   --port 8000 \
@@ -255,6 +250,46 @@ Deploy to Raspberry Pi without cloning the repository:
 curl -fsSL https://raw.githubusercontent.com/Esouder/narya/master/deploy/install.sh | sudo bash
 ```
 
+### Configuration via Environment Variables
+
+All hardware and service parameters can be configured via environment variables when using Docker:
+
+```bash
+# Development with custom SPI clock
+docker-compose up -e SPI_CLOCK_HZ=1000000
+
+# Production with custom pins and intervals
+docker run \
+  --device /dev/spidev0.0:/dev/spidev0.0 \
+  --device /dev/mem:/dev/mem \
+  -p 8000:8000 \
+  -e CS_PIN=10 \
+  -e SPI_BUS=0 \
+  -e SPI_DEVICE=0 \
+  -e SPI_CLOCK_HZ=2000000 \
+  -e READ_INTERVAL=500 \
+  -e MAX_RETRIES=5 \
+  ghcr.io/esouder/narya:latest
+```
+
+### Available Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `CS_PIN` | 8 | GPIO chip select pin |
+| `SPI_BUS` | 0 | SPI bus number |
+| `SPI_DEVICE` | 0 | SPI device on bus |
+| `SPI_CLOCK_HZ` | 5000000 | SPI clock rate in Hz |
+| `MAX_RETRIES` | 3 | Retry attempts on failure |
+| `HOST` | 0.0.0.0 | API server host |
+| `PORT` | 8000 | API server port |
+| `WORKERS` | 1 | Worker processes |
+| `LOG_LEVEL` | INFO | Logging level (DEBUG, INFO, WARNING, ERROR) |
+
+### Docker Compose Deployment
+
+Edit [deploy/docker-compose.yml](deploy/docker-compose.yml) to customize environment variables:
+
 ### What the Install Script Does
 
 1. **Prerequisites Check**: Verifies Docker and Docker Compose are installed
@@ -262,7 +297,10 @@ curl -fsSL https://raw.githubusercontent.com/Esouder/narya/master/deploy/install
 3. **Directory Setup**: Creates `/opt/narya` with proper permissions
 4. **Hardware Access**: Configures GPIO/SPI device permissions
 5. **Image Pull**: Downloads latest container from GHCR
-6. **ServicInstallation (Alternative)
+6. **Service Installation**: Installs and enables systemd service
+7. **Verification**: Validates service health
+
+### Manual Installation (Alternative)
 
 If you prefer manual setup or need to customize:
 
@@ -279,9 +317,6 @@ sudo systemctl daemon-reload
 sudo systemctl enable narya
 sudo systemctl start narya
 ```
-
-### Manual e Installation**: Installs and enables systemd service
-7. **Verification**: Validates service health
 
 ### Custom Configuration
 

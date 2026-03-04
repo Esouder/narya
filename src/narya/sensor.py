@@ -30,6 +30,7 @@ class MAX31855:
         cs_pin: int = 8,
         spi_bus: int = 0,
         spi_device: int = 0,
+        max_speed_hz: int = 5_000_000,
     ) -> None:
         """
         Initialize the MAX31855 sensor interface.
@@ -38,6 +39,7 @@ class MAX31855:
             cs_pin: GPIO pin number for chip select (default: 8).
             spi_bus: SPI bus number (default: 0).
             spi_device: SPI device number on the bus (default: 0).
+            max_speed_hz: SPI clock rate in Hz (default: 5000000).
 
         Raises:
             ImportError: If GPIO libraries cannot be imported.
@@ -45,13 +47,14 @@ class MAX31855:
         self.cs_pin = cs_pin
         self.spi_bus = spi_bus
         self.spi_device = spi_device
+        self.max_speed_hz = max_speed_hz
         self._spi: Any | None = None
 
         try:
             spidev_module = import_module("spidev")
             spi = spidev_module.SpiDev()
             spi.open(spi_bus, spi_device)
-            spi.max_speed_hz = 5_000_000
+            spi.max_speed_hz = max_speed_hz
             self._spi = spi
         except ImportError as e:
             raise ImportError(
