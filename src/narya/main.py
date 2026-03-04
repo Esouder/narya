@@ -18,6 +18,7 @@ from .sensor import MAX31855
 
 
 @dataclass(frozen=True)
+# pylint: disable=too-many-instance-attributes
 class AppArgs:
     """Typed runtime arguments for the application."""
 
