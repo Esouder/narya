@@ -47,7 +47,6 @@ jobs:
 
       - name: Lint with pylint
         run: poetry run pylint src/narya --max-line-length=88
-        continue-on-error: true
 
   test:
     name: Tests
@@ -67,14 +66,7 @@ jobs:
           poetry install
 
       - name: Run tests with coverage
-        run: poetry run pytest --cov=src/narya --cov-report=xml --cov-report=term-missing
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
-        with:
-          files: ./coverage.xml
-          fail_ci_if_error: false
-          verbose: true
+        run: poetry run pytest --cov=src/narya --cov-report=term-missing
 
   build:
     runs-on: ubuntu-latest

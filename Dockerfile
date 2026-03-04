@@ -13,14 +13,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Copy project files
 COPY pyproject.toml README.md ./
+COPY src ./src
 
 # Install Python dependencies
 RUN pip install --no-cache-dir poetry && \
     poetry config virtualenvs.create false && \
     poetry install --only main --no-interaction --no-ansi
-
-# Copy source code
-COPY src ./src
 
 # Create non-root user for security
 RUN useradd -m -u 1000 narya && \

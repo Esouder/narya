@@ -20,11 +20,9 @@ class SensorProtocol(Protocol):
 
     def read_temperature(self) -> tuple[float, float]:
         """Read temperature from sensor."""
-        ...
 
     def close(self) -> None:
         """Close sensor connection."""
-        ...
 
 
 class TemperatureReading(BaseModel):
