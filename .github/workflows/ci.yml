@@ -69,6 +69,7 @@ jobs:
         run: poetry run pytest --cov=src/narya --cov-report=term-missing
 
   build:
+    name: Build and Publish Docker Image
     runs-on: ubuntu-latest
     needs: test
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
