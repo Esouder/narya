@@ -89,24 +89,28 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Get version and hash
+        id: version
+        env:
+          REPO: ${{ github.repository }}
+        run: |
+          VERSION=$(grep "^version = " pyproject.toml | sed 's/version = "\(.*\)"/\1/')
+          SHORT_HASH=$(git rev-parse --short HEAD)
+          REPO_LOWER=$(echo "$REPO" | tr '[:upper:]' '[:lower:]')
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "short_hash=${SHORT_HASH}" >> $GITHUB_OUTPUT
+          echo "repo_lower=${REPO_LOWER}" >> $GITHUB_OUTPUT
+          echo "tag=ghcr.io/${REPO_LOWER}:${VERSION}-${SHORT_HASH}" >> $GITHUB_OUTPUT
+
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository }}
+          images: ghcr.io/${{ steps.version.outputs.repo_lower }}
           tags: |
             type=ref,event=branch
             type=sha,prefix={{branch}}-
             type=raw,value=latest
-
-      - name: Get version and hash
-        id: version
-        run: |
-          VERSION=$(grep "^version = " pyproject.toml | sed 's/version = "\(.*\)"/\1/')
-          SHORT_HASH=$(git rev-parse --short HEAD)
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
-          echo "short_hash=${SHORT_HASH}" >> $GITHUB_OUTPUT
-          echo "tag=${VERSION}-${SHORT_HASH}" >> $GITHUB_OUTPUT
 
       - name: Build and push
         uses: docker/build-push-action@v5
@@ -116,7 +120,7 @@ jobs:
           push: true
           tags: |
             ${{ steps.meta.outputs.tags }}
-            ghcr.io/${{ github.repository }}:${{ steps.version.outputs.tag }}
+            ${{ steps.version.outputs.tag }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
