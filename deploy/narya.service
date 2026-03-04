@@ -1,0 +1,26 @@
+[Unit]
+Description=Narya MAX31855 Thermocouple Reader Service
+After=network.target docker.service
+Wants=docker.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/narya
+
+# Pull latest image and run container
+ExecStartPre=-/usr/bin/docker pull ghcr.io/esouder/narya:latest
+ExecStart=/usr/bin/docker run --rm \
+  --name narya \
+  --network host \
+  --device /dev/spidev0.0:/dev/spidev0.0 \
+  --device /dev/mem:/dev/mem \
+  -e LOG_LEVEL=INFO \
+  ghcr.io/esouder/narya:latest
+
+ExecStop=/usr/bin/docker stop narya
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

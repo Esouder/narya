@@ -1,0 +1,19 @@
+services:
+  narya:
+    image: ghcr.io/esouder/narya:latest
+    container_name: narya-prod
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      - LOG_LEVEL=INFO
+    # GPIO device mapping for Raspberry Pi
+    devices:
+      - /dev/spidev0.0:/dev/spidev0.0
+      - /dev/mem:/dev/mem
+    privileged: true
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
