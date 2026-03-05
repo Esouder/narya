@@ -40,8 +40,25 @@ log_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
-# Check if running as root
-check_root() {
+# Check if this is an upgrade of existing installation
+detect_upgrade() {
+    if [ -f "$SERVICE_FILE" ]; then
+        return 0  # True - this is an upgrade
+    else
+        return 1  # False - this is a fresh install
+    fi
+}
+
+# Stop service gracefully for upgrade
+stop_service_for_upgrade() {
+    log_info "Stopping existing service for upgrade..."
+
+    if systemctl is-active --quiet "$SERVICE_NAME"; then
+        systemctl stop "$SERVICE_NAME" || true
+        sleep 1
+        log_info "Service stopped"
+    fi
+}
     if [[ $EUID -ne 0 ]]; then
         log_error "This script must be run as root"
         exit 1
@@ -68,8 +85,10 @@ check_prerequisites() {
     fi
 
     # Check if user has docker group access
-    if ! groups | grep -q docker; then
-        log_warn "Current user is not in docker group. You may need to use 'sudo' or add user to docker group"
+    # When run with sudo, check the original user's groups, not root's
+    CHECK_USER="${SUDO_USER:-$(whoami)}"
+    if ! id -Gn "$CHECK_USER" | grep -q docker; then
+        log_warn "User '$CHECK_USER' is not in docker group. Add via: sudo usermod -aG docker $CHECK_USER"
     fi
 }
 
@@ -218,19 +237,24 @@ verify_installation() {
 # Show status and next steps
 show_status() {
     echo ""
-    log_info "Installation complete!"
+
+    if detect_upgrade; then
+        log_info "Upgrade complete!"
+    else
+        log_info "Installation complete!"
+    fi
+
     echo ""
-    echo "Next steps:"
-    echo "  1. Review configuration: cat ${INSTALL_DIR}/docker-compose.yml"
-    echo "  2. Check service status: systemctl status ${SERVICE_NAME}"
-    echo "  3. View logs: journalctl -u ${SERVICE_NAME} -f"
-    echo "  4. Access API: curl http://localhost:8000/temperature"
-    echo ""
-    echo "Common commands:"
-    echo "  Start service:  systemctl start ${SERVICE_NAME}"
-    echo "  Stop service:   systemctl stop ${SERVICE_NAME}"
-    echo "  Restart service: systemctl restart ${SERVICE_NAME}"
+    echo "Quick commands:"
+    echo "  Check status:   systemctl status ${SERVICE_NAME}"
     echo "  View logs:      journalctl -u ${SERVICE_NAME} -f"
+    echo "  Test API:       curl http://localhost:8000/temperature"
+    echo ""
+    echo "Management:"
+    echo "  Start service:    systemctl start ${SERVICE_NAME}"
+    echo "  Stop service:     systemctl stop ${SERVICE_NAME}"
+    echo "  Restart service:  systemctl restart ${SERVICE_NAME}"
+    echo "  Edit config:      nano ${INSTALL_DIR}/docker-compose.yml"
     echo ""
 }
 
@@ -242,6 +266,13 @@ main() {
 
     check_root
     check_prerequisites
+
+    # Detect if this is an upgrade
+    if detect_upgrade; then
+        log_info "Upgrade detected - stopping service before update"
+        stop_service_for_upgrade
+    fi
+
     setup_directories
     download_files
     setup_hardware_access
