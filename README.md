@@ -1,5 +1,9 @@
 # Narya
 
+<div align="center">
+  <img src="icon.svg">
+</div>
+
 A containerized Python service for reading K-type thermocouple temperatures from MAX31855 amplifiers connected to Raspberry Pi GPIO pins. Provides a clean FastAPI REST interface for temperature monitoring and control.
 
 ## Features
