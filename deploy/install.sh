@@ -58,11 +58,14 @@ check_prerequisites() {
     fi
     log_info "Docker found: $(docker --version)"
 
-    if ! command -v docker-compose &> /dev/null; then
+    if command -v docker-compose &> /dev/null; then
+        log_info "Docker Compose found: $(docker-compose --version)"
+    elif docker compose version &> /dev/null; then
+        log_info "Docker Compose found (integrated): $(docker compose version)"
+    else
         log_error "Docker Compose is not installed"
         exit 1
     fi
-    log_info "Docker Compose found: $(docker-compose --version)"
 
     # Check if user has docker group access
     if ! groups | grep -q docker; then
