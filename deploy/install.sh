@@ -59,6 +59,9 @@ stop_service_for_upgrade() {
         log_info "Service stopped"
     fi
 }
+
+# Check if running as root
+check_root() {
     if [[ $EUID -ne 0 ]]; then
         log_error "This script must be run as root"
         exit 1
