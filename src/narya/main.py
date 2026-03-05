@@ -158,13 +158,22 @@ def main(args: Optional[AppArgs] = None) -> int:
             max_speed_hz=parsed_args.max_speed_hz,
         )
 
-        # Verify sensor connectivity with a test read
-        tc_temp, ref_temp = sensor.read_temperature()
-        logger.info(
-            "Sensor initialized successfully. TC: %.2fC, Ref: %.2fC",
-            tc_temp,
-            ref_temp,
-        )
+        # Verify sensor connectivity with a test read, but don't crash if it fails
+        try:
+            tc_temp, ref_temp = sensor.read_temperature()
+            logger.info(
+                "Sensor initialized successfully. TC: %.2fC, Ref: %.2fC",
+                tc_temp,
+                ref_temp,
+            )
+        except Exception as sensor_error:  # pylint: disable=broad-exception-caught
+            logger.warning(
+                "Sensor test read failed: %s - proceeding with server startup",
+                sensor_error,
+            )
+            logger.info(
+                "API requests will report sensor status/errors in 503 responses"
+            )
 
         logger.info("Configuring FastAPI application...")
         configure_service(sensor, max_retries=parsed_args.max_retries)

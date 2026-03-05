@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "narya"
-version = "0.2.3"
+version = "0.2.4"
 description = "Read from MAX31855 TC chips with RPi."
 authors = ["Eric <eric@souder.ca>"]
 readme = "README.md"

@@ -159,6 +159,16 @@ install_systemd_service() {
 setup_hardware_access() {
     log_info "Configuring hardware access..."
 
+    # Create persistent udev rule for SPI device permissions
+    cat > /etc/udev/rules.d/99-narya-spi.rules << 'EOF'
+SUBSYSTEM=="spidev", MODE="0666"
+EOF
+    log_info "Created udev rule for SPI device permissions"
+
+    # Reload udev rules
+    udevadm control --reload-rules 2>/dev/null || true
+    udevadm trigger 2>/dev/null || true
+
     # Add docker user to gpio/spi groups if they exist
     if groups | grep -q gpio; then
         if ! id -Gn docker | grep -q gpio; then
