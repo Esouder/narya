@@ -5,7 +5,7 @@ from __future__ import annotations
 import sys
 from unittest.mock import Mock, patch
 
-import pytest
+import pytest  # pylint: disable=import-error
 
 from narya.main import AppArgs, main, parse_arguments, setup_logging
 

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import types
 
-import pytest
+import pytest  # pylint: disable=import-error
 
 from narya.sensor import MAX31855, SensorError
 

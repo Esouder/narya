@@ -18,7 +18,7 @@ from .sensor import MAX31855
 
 
 @dataclass(frozen=True)
-class AppArgs:
+class AppArgs:  # pylint: disable=too-many-instance-attributes
     """Typed runtime arguments for the application."""
 
     spi_bus: int
