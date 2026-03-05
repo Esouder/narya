@@ -18,11 +18,9 @@ from .sensor import MAX31855
 
 
 @dataclass(frozen=True)
-# pylint: disable=too-many-instance-attributes
 class AppArgs:
     """Typed runtime arguments for the application."""
 
-    cs_pin: int
     spi_bus: int
     spi_device: int
     max_speed_hz: int
@@ -59,7 +57,7 @@ def parse_arguments() -> AppArgs:
         epilog="""
 Examples:
   # Standard deployment on Raspberry Pi
-  python -m narya.main --cs-pin 8 --host 0.0.0.0 --port 8000
+  python -m narya.main --host 0.0.0.0 --port 8000
 
   # With custom SPI clock rate
   python -m narya.main --spi-clock-hz 1000000 --host 0.0.0.0
@@ -67,12 +65,6 @@ Examples:
     )
 
     # Hardware configuration
-    parser.add_argument(
-        "--cs-pin",
-        type=int,
-        default=8,
-        help="GPIO chip select pin number (default: 8)",
-    )
     parser.add_argument(
         "--spi-bus",
         type=int,
@@ -131,7 +123,6 @@ Examples:
 
     namespace = parser.parse_args()
     return AppArgs(
-        cs_pin=namespace.cs_pin,
         spi_bus=namespace.spi_bus,
         spi_device=namespace.spi_device,
         max_speed_hz=namespace.spi_clock_hz,
@@ -162,7 +153,6 @@ def main(args: Optional[AppArgs] = None) -> int:
     try:
         logger.info("Initializing MAX31855 sensor...")
         sensor = MAX31855(
-            cs_pin=parsed_args.cs_pin,
             spi_bus=parsed_args.spi_bus,
             spi_device=parsed_args.spi_device,
             max_speed_hz=parsed_args.max_speed_hz,

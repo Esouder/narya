@@ -17,7 +17,6 @@ class TestArgumentParsing:
         with patch.object(sys, "argv", ["narya"]):
             args = parse_arguments()
 
-        assert args.cs_pin == 8
         assert args.spi_bus == 0
         assert args.spi_device == 0
         assert args.max_retries == 3
@@ -32,8 +31,6 @@ class TestArgumentParsing:
             "argv",
             [
                 "narya",
-                "--cs-pin",
-                "10",
                 "--spi-bus",
                 "1",
                 "--spi-device",
@@ -52,7 +49,6 @@ class TestArgumentParsing:
         ):
             args = parse_arguments()
 
-        assert args.cs_pin == 10
         assert args.spi_bus == 1
         assert args.spi_device == 0
         assert args.max_retries == 5
@@ -83,7 +79,6 @@ class TestMainFunction:
 
     def _app_args(self) -> AppArgs:
         return AppArgs(
-            cs_pin=8,
             spi_bus=0,
             spi_device=0,
             max_speed_hz=5_000_000,

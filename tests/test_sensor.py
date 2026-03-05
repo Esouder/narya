@@ -53,9 +53,8 @@ class TestMAX31855Initialization:
     def test_init_success(self, monkeypatch: pytest.MonkeyPatch) -> None:
         _patch_spidev(monkeypatch)
 
-        sensor = MAX31855(cs_pin=10, spi_bus=1, spi_device=0)
+        sensor = MAX31855(spi_bus=1, spi_device=0)
 
-        assert sensor.cs_pin == 10
         assert sensor.spi_bus == 1
         assert sensor.spi_device == 0
 

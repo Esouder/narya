@@ -7,7 +7,6 @@ services:
     environment:
       - LOG_LEVEL=INFO
       # SPI Configuration (all optional, these are defaults)
-      - CS_PIN=8
       - SPI_BUS=0
       - SPI_DEVICE=0
       - SPI_CLOCK_HZ=5000000

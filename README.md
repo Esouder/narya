@@ -168,7 +168,6 @@ All hardware and service parameters can be set via command-line flags:
 
 ```bash
 python -m narya.main \
-  --cs-pin 8 \
   --spi-bus 0 \
   --spi-device 0 \
   --spi-clock-hz 5000000 \
@@ -186,8 +185,7 @@ docker run \
   --device /dev/spidev0.0:/dev/spidev0.0 \
   --device /dev/mem:/dev/mem \
   -p 8000:8000 \
-  ghcr.io/esouder/narya:latest \
-  python -m narya.main --cs-pin 8
+  ghcr.io/esouder/narya:latest
 ```
 
 ## Development
@@ -258,16 +256,14 @@ All hardware and service parameters can be configured via environment variables 
 # Development with custom SPI clock
 docker-compose up -e SPI_CLOCK_HZ=1000000
 
-# Production with custom pins and intervals
+# Production with custom SPI settings
 docker run \
   --device /dev/spidev0.0:/dev/spidev0.0 \
   --device /dev/mem:/dev/mem \
   -p 8000:8000 \
-  -e CS_PIN=10 \
   -e SPI_BUS=0 \
   -e SPI_DEVICE=0 \
   -e SPI_CLOCK_HZ=2000000 \
-  -e READ_INTERVAL=500 \
   -e MAX_RETRIES=5 \
   ghcr.io/esouder/narya:latest
 ```
@@ -276,7 +272,6 @@ docker run \
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `CS_PIN` | 8 | GPIO chip select pin |
 | `SPI_BUS` | 0 | SPI bus number |
 | `SPI_DEVICE` | 0 | SPI device on bus |
 | `SPI_CLOCK_HZ` | 5000000 | SPI clock rate in Hz |
@@ -285,6 +280,31 @@ docker run \
 | `PORT` | 8000 | API server port |
 | `WORKERS` | 1 | Worker processes |
 | `LOG_LEVEL` | INFO | Logging level (DEBUG, INFO, WARNING, ERROR) |
+
+### SPI and Chip Select Configuration
+
+The MAX31855 thermocouple amplifier communicates via hardware SPI. The chip select (CS) pin is **managed by the hardware SPI interface**, not by the application.
+
+**Raspberry Pi Setup**:
+
+The SPI interface is typically enabled via `/boot/config.txt`. Verify the following configuration:
+
+```ini
+# Enable SPI interface
+dtparam=spi=on
+```
+
+By default, Raspberry Pi SPI0 uses GPIO8 as CS0 (pin 24 on the header). If you need to use a different SPI bus, CS pin, or non-default configuration, edit `/boot/config.txt` and add device tree overlays as needed:
+
+```ini
+# Example: Use SPI0 with alternate CS pin (GPIO7)
+dtoverlay=spi0-1cs,cs0_pin=7
+
+# Example: Enable SPI1 (requires secondary SPI device tree)
+dtoverlay=spi1-3cs
+```
+
+After editing `/boot/config.txt`, reboot your Raspberry Pi for changes to take effect.
 
 ### Docker Compose Deployment
 
